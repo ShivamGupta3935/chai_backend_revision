@@ -1,0 +1,18 @@
+# Ignore artifacts:
+build
+coverage
+
+.env
+.env*
+*.env
+**/.git
+**/.svn
+**/.hg
+**/node_modules
+
+**/.git
+**/.svn
+**/.hg
+
+# Ignore all HTML files:
+**/*.html
