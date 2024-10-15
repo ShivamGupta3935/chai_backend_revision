@@ -1,0 +1,15 @@
+{
+  "name": "backend_revision",
+  "version": "1.0.0",
+  "description": "a backend revision starting today",
+  "main": "index.js",
+  "scripts": {
+    "test": "index.js"
+  },
+  "keywords": [
+    "chai",
+    "backend"
+  ],
+  "author": "shivam_gupta",
+  "license": "ISC"
+}
