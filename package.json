@@ -4,12 +4,16 @@
   "description": "a backend revision starting today",
   "main": "index.js",
   "scripts": {
-    "test": "index.js"
+    "test": "index.js",
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
     "chai",
     "backend"
   ],
   "author": "shivam_gupta",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
 }
