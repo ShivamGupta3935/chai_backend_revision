@@ -19,7 +19,7 @@ import fs from 'fs'
                 resource_type: 'auto'
             })
 
-            console.log("file uploaded successfully", responseUrl.url);
+            // console.log("file uploaded successfully", responseUrl.url);
             return responseUrl;            
 
         } catch (error) {

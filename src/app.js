@@ -17,4 +17,13 @@ app.use(express.urlencoded({
 app.use(express.static('public'))
 app.use(cookieParser())
 
+//router import
+import router from "./routes/user.routes.js";
+
+//routes 
+app.use('/api/v1/users', router)
+
+//http://localhost:8000/api/v1/users
+
+
 export {app}
