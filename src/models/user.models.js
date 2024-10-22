@@ -4,12 +4,11 @@ import bcrypt from 'bcrypt'
 
 
 
-const UserSchema = new Schema({
+const UserSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
         unique: true,
-        lowercase: true,
         trim: true,
         index: true
     },
@@ -21,7 +20,7 @@ const UserSchema = new Schema({
         trim: true
     },
     fullname: {
-        type: true,
+        type: String,
         required: true,
         trim: true
     },
@@ -59,8 +58,9 @@ UserSchema.methods.isPasswordCorrect = async function(){
 }
 
 //jwt costom method for token
-UserSchema.methods.generateAccessToken = jwt.sign(
-    {
+UserSchema.methods.generateAccessToken =function() { 
+    return jwt.sign(
+     {
         _id: this._id,
         email: this.email,
         username: this.username,
@@ -71,8 +71,8 @@ UserSchema.methods.generateAccessToken = jwt.sign(
         expiresIn: process.env.ACCESS_TOKEN_EXPIRY
     }
 )
-
-UserSchema.methods.generateRefreshToken = jwt.sign(
+}
+UserSchema.methods.generateRefreshToken = function (){ jwt.sign(
     {
         _id: this._id,
     },
@@ -81,5 +81,5 @@ UserSchema.methods.generateRefreshToken = jwt.sign(
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     }
 )
-
-export const Video = mongoose.model('User', UserSchema)
+}
+export const User = mongoose.model('User', UserSchema)

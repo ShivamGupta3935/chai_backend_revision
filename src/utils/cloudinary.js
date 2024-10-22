@@ -30,3 +30,4 @@ import fs from 'fs'
        
     console.log(uploadOnCloudinary);
     
+    export default uploadOnCloudinary
