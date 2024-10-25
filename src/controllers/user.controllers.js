@@ -13,7 +13,7 @@ const generateAccessAndRefreshToken = async(userId) => {
       const refreshToken = user.generateRefreshToken()
 
       user.refreshToken = refreshToken
-      console.log("refreshtoken", refreshToken);
+      // console.log("refreshtoken", refreshToken);
       
       await user.save({validateBeforeSave: false})
 
@@ -36,7 +36,7 @@ const registerUser = promisehandler( async(req, res) => {
 
 
      const {username, email, fullname, password}= req.body
-     console.log(`username:${username} email: ${email} fullname: ${fullname} `)
+   //   console.log(`username:${username} email: ${email} fullname: ${fullname} `)
 
     if ([username, email, password, fullname].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required")
@@ -52,9 +52,9 @@ const registerUser = promisehandler( async(req, res) => {
 
     console.log("req filess", req.files);
      const avatarLocalPath = req.files?.avatar[0]?.path
-     console.log(req.files?.avatar[0]);
+   //   console.log(req.files?.avatar[0]);
     
-     console.log("avatar local path ", avatarLocalPath);
+   //   console.log("avatar local path ", avatarLocalPath);
      
      
    //   const coverImageFile = req.files?.coverImage;
@@ -62,13 +62,10 @@ const registerUser = promisehandler( async(req, res) => {
    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
       coverImageLocalPath = req.files.coverImage[0].path
    }
-   console.log("coverimage local path ", coverImageLocalPath);
+   // console.log("coverimage local path ", coverImageLocalPath);
    
     
-   //   console.log("coverImage locat path ", coverImageFile)
-     
-
-     if (!avatarLocalPath) {
+   if (!avatarLocalPath) {
         throw new ApiError(400, "avatar image are required")
      }
 
@@ -120,11 +117,10 @@ const loginUser = promisehandler(async(req, res) => {
 // access & refresh token 
 // send res
    const {username, email, password} = req.body
-   console.log("req body",typeof(req.body).length);
-   console.log("req body",req.body.username);
-   console.log("req body",req.body.email);
-   
-   console.log("email login", email);
+  
+   // console.log("req body",req.body.username);
+   // console.log("req body",req.body.email);   
+   // console.log("email login", email);
    
    if (!username && !email) {
       throw new ApiError(401, "username or email not valid")
@@ -145,8 +141,8 @@ const loginUser = promisehandler(async(req, res) => {
      }
 
      const {accessToken, refreshToken}= await generateAccessAndRefreshToken(user._id)
-     console.log("accesstoken" , accessToken);
-     console.log("refreshtoken" , refreshToken);
+   //   console.log("accesstoken" , accessToken);
+   //   console.log("refreshtoken" , refreshToken);
      
      const loggedInUser = await User.findById(user._id).select('-password -refreshToken')
 
@@ -174,8 +170,8 @@ const loginUser = promisehandler(async(req, res) => {
 const logoutUser = promisehandler(async(req, res) => {
    await User.findByIdAndUpdate(req.user._id,
       {
-         $set: {
-            refreshToken: undefined
+         $unset: {
+            refreshToken: 1
          }
       }, 
       {
@@ -187,6 +183,47 @@ const logoutUser = promisehandler(async(req, res) => {
       httpOnly: true,
       secure: true
    }
+
+   const refreshAccessToken = promisehandler(async(req, res) => {
+      const incomingRefreshtoken = req.cookies?.refreshToken || req.body.refreshToken
+
+      if (!incomingRefreshtoken) {
+         throw new ApiError(400, "unauthorized incomingrefreshtoken")
+      }
+
+      const decodedToken = jwt.verify(incomingRefreshtoken,
+         process.env.REFRESH_TOKEN_SECRET
+      )
+
+      const user = await User.findById(decodedToken._id)
+
+      if (!user) {
+         throw new ApiError(401, "invalid refresh token")
+      }
+
+      if (incomingRefreshtoken !== user?.refreshToken) {
+         throw new ApiError(401, "refresh token expired or used ")
+      }
+
+      const options = {
+         httpOnly: true,
+         secure: true
+      }
+
+   
+   const {accessToken, newRefreshToken} = await generateAccessAndRefreshToken(user._id)
+   })
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken)
+    .cookie("refreshToken", refreshToken)
+    .json(
+      new ApiResponse(200,
+         {accessToken, refreshToken: newRefreshToken, },
+         "new refresh token generated successfully"
+      )
+    )
 
    return res
    .status(200)
@@ -201,4 +238,4 @@ const logoutUser = promisehandler(async(req, res) => {
    )
 })
 
-export  {registerUser, loginUser, logoutUser}
+export  {registerUser, loginUser, logoutUser, refreshAccessToken}
