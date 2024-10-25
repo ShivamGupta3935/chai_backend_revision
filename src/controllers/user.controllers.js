@@ -1,8 +1,9 @@
-import { promisehandler } from "../utils/promiseHandler.js";
+import  promisehandler  from "../utils/promiseHandler.js";
 import { User } from '../models/user.models.js'
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from 'jsonwebtoken'
+import {ApiError} from '../utils/ApiError.js'
 
 //token generate
 const generateAccessAndRefreshToken = async(userId) => {
@@ -12,6 +13,8 @@ const generateAccessAndRefreshToken = async(userId) => {
       const refreshToken = user.generateRefreshToken()
 
       user.refreshToken = refreshToken
+      console.log("refreshtoken", refreshToken);
+      
       await user.save({validateBeforeSave: false})
 
       return {accessToken, refreshToken}
@@ -117,6 +120,15 @@ const loginUser = promisehandler(async(req, res) => {
 // access & refresh token 
 // send res
    const {username, email, password} = req.body
+   console.log("req body",typeof(req.body).length);
+   console.log("req body",req.body.username);
+   console.log("req body",req.body.email);
+   
+   console.log("email login", email);
+   
+   if (!username && !email) {
+      throw new ApiError(401, "username or email not valid")
+   }
 
    const user = await User.findOne({
       $or: [{email}, {username}]
@@ -133,6 +145,8 @@ const loginUser = promisehandler(async(req, res) => {
      }
 
      const {accessToken, refreshToken}= await generateAccessAndRefreshToken(user._id)
+     console.log("accesstoken" , accessToken);
+     console.log("refreshtoken" , refreshToken);
      
      const loggedInUser = await User.findById(user._id).select('-password -refreshToken')
 
@@ -187,4 +201,4 @@ const logoutUser = promisehandler(async(req, res) => {
    )
 })
 
-export default {registerUser, loginUser, logoutUser}
+export  {registerUser, loginUser, logoutUser}

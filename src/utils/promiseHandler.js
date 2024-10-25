@@ -6,4 +6,4 @@ const promisehandler = (requestHandler) => {
     }
 }
 
-export {promisehandler}
+export default promisehandler

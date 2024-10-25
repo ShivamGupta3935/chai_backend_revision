@@ -46,16 +46,19 @@ const UserSchema = new mongoose.Schema({
     ]
 }, {timestamps:true})
 
+
 UserSchema.pre('save',async function(next){
     if (!this.isModified('password')) return next()
-    this.password = bcrypt.hash(this.password, 8)
+    this.password = await bcrypt.hash(this.password, 8)
     next()
 })
-
 //costom methods 
-UserSchema.methods.isPasswordCorrect = async function(){
-   return await bcrypt.compare(password, this.password)
+UserSchema.methods.isPasswordCorrect = async function(password){
+    const isValid = await bcrypt.compare(password, this.password)
+    console.log("password comparision result", isValid)
+    return isValid
 }
+
 
 //jwt costom method for token
 UserSchema.methods.generateAccessToken =function() { 
@@ -72,7 +75,7 @@ UserSchema.methods.generateAccessToken =function() {
     }
 )
 }
-UserSchema.methods.generateRefreshToken = function (){ jwt.sign(
+UserSchema.methods.generateRefreshToken = function (){ return jwt.sign(
     {
         _id: this._id,
     },
