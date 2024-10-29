@@ -268,7 +268,7 @@ const changeCurrentPassword = promisehandler( async(req, res) => {
 
 })
 
-const getCurrentUser = promiseHandler(async(req, res) => {
+const getCurrentUser = promisehandler(async(req, res) => {
    return res
    .status(200)
    .json(new ApiResponse(
@@ -278,17 +278,23 @@ const getCurrentUser = promiseHandler(async(req, res) => {
    ))
 })
 
-const updateUserDetails = promiseHandler(async(req, res)=> { const {fullname, email} = req.body
+const updateUserDetails = promisehandler(async(req, res)=> { const {fullname, email} = req.body
+
+   if (!fullname || !email) {
+      throw new ApiError(400, "fullname and email missing")
+   }
      const user = await User.findByIdAndUpdate(
       req.user?._id,
       {
-         set: {
+         $set: {
             fullname,
             email:email
-         }, {
-            new: true
          }
-      }).select("-password")
+      },
+      {
+         new: true
+      }
+   ).select("-password")
 
    return res
    .status(200)
@@ -301,7 +307,7 @@ const updateUserDetails = promiseHandler(async(req, res)=> { const {fullname, em
    )
 })
 
-const updateUserAvatar = promiseHandler( async(req, res)=> {
+const updateUserAvatar = promisehandler( async(req, res)=> {
    const avatarLocalPath = req.file?.path
 
    if (!avatarLocalPath) {
@@ -318,7 +324,9 @@ const updateUserAvatar = promiseHandler( async(req, res)=> {
    const user = await User.findByIdAndUpdate(
       req.user?._id,
       {
-         set: {
+         
+         
+         $set: {
             avatar: avatar.url
          }
       },
@@ -335,7 +343,7 @@ const updateUserAvatar = promiseHandler( async(req, res)=> {
    )
 })
 
-const updateUserCoverImage = promiseHandler(async( req, res) => {
+const updateUserCoverImage = promisehandler(async( req, res) => {
    const coverImageLocalPath = req.file?.path
    if (!coverImageLocalPath) {
       throw new ApiError("400", "coverLocalImage missing")
@@ -350,7 +358,7 @@ const updateUserCoverImage = promiseHandler(async( req, res) => {
   const user = await User.findByIdAndUpdate(
    req.user?._id,
    {
-      set: {
+      $set: {
          coverImage: coverImage.url
       }
    },
@@ -368,6 +376,75 @@ const updateUserCoverImage = promiseHandler(async( req, res) => {
 
 })
 
+const getUserChannelProfile = promisehandler(async(req, res) => {
+   const {username} = req.params
+
+   if (!username?.trim()) {
+      throw new ApiError(400, "username not exist")
+   }
+
+   const channel = await User.aggregate([
+      {
+         $match: {
+            username: username?.toLowerCase()
+         }
+      },
+      {
+         $lookup:{
+            from: "subscriptions",
+            localField: "_id",
+            foreignField: "subscriber",
+            as: "subscribedTo"
+         }
+      },
+      {
+         $lookup: {
+            from: "subscriptions",
+            localField: "_id",
+            foreignField: "channel",
+            as: "subscribers"
+         }
+      },
+      {
+         $addFields: {
+            subscriberCount: {
+               $size:"$subscribers"
+            },
+            channelSubscribeToCount: {
+               $size: "$subscribedTo"
+            },
+            isSubscribed: {
+               $cond: {
+                 if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                 then: true,
+                 else: false
+               }
+            }
+         }
+      },
+      {
+         $project: {
+            fullname: 1,
+            email: 1,
+            username: 1,
+            subscriberCount: 1,
+            channelSubscribeToCount: 1,
+            avatar: 1,
+            coverImage: 1,
+            isSubscribed: 1
+         }
+      }
+   ])
+
+   if (!channel?.length) {
+      throw new ApiError(404, "channel does not exist")
+   }
+
+   return res
+   .status(200)
+   .json(200, channel[0], "channel fetched successfully")
+})
+
 export  {
    registerUser, 
    loginUser, 
@@ -377,5 +454,6 @@ export  {
    getCurrentUser,
    updateUserDetails,
    updateUserAvatar,
-   updateUserCoverImage
+   updateUserCoverImage,
+   getUserChannelProfile
 }
