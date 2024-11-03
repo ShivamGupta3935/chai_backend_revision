@@ -1,6 +1,7 @@
 import promiseHandler from '../utils/promiseHandler.js'
 import {ApiError} from '../utils/ApiError.js'
 import {User} from '../models/user.models.js'
+import jwt from "jsonwebtoken"
 
 export const verifyJwt = promiseHandler(async(req, _, next) => {
     try {
@@ -9,7 +10,7 @@ export const verifyJwt = promiseHandler(async(req, _, next) => {
         
     
         if (!token) {
-            throw new ApiError(401, "Invalid unauthorized request")
+            throw new ApiError(401, "Invalid unauthorized request in generate token")
         }
     
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
@@ -20,7 +21,7 @@ export const verifyJwt = promiseHandler(async(req, _, next) => {
     console.log( "user decoded token", user);
     
         if (!user) {
-            throw new ApiError(400, "unauthorized token")
+            throw new ApiError(400, "invalid access token ")
         }
     
         req.user = user;
