@@ -1,11 +1,8 @@
 import dotenv from 'dotenv'
-
-import mongoose from "mongoose";
-import {DB_NAME} from './constants.js'
 import { app } from './app.js';
 
 import connectToDB from "./db/index.js";
-const port = process.env.PORT || 3333
+const port = process.env.PORT || 3334
 dotenv.config({
     path: './.env'
 })
