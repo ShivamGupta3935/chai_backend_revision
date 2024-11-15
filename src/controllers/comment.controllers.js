@@ -49,8 +49,8 @@ const getVideoComments = promiseHandler(async (req, res) => {
                 },
                 isLiked: {
                     $cond: {
-                        if: {$in: [req.user?_id, "$likes.likedBy"]},
-                        then: true
+                        if: {$in: [req.user?._id, "$likes.likedBy"]},
+                        then: true,
                         else: false
                     }
                 }
@@ -114,7 +114,7 @@ const addComment = promiseHandler(async (req, res) => {
     const createComment = await Comment.create({
         content,
         video: videoId,
-        owner: req..user?._id
+        owner: req.user?._id
     })
 
     if (!createComment) {
